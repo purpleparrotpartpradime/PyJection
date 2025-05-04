@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Python IDE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css"/>
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    #tabs { display: flex; }
+    #tabs button { flex: 1; padding: 10px; cursor: pointer; }
+    .tab-content { display: none; height: calc(100vh - 50px); }
+    .active { display: block; }
+    #editor { height: 100%; }
+    #terminal { background: #000; color: #0f0; padding: 10px; overflow-y: scroll; height: 100%; font-family: monospace; }
+    #controls { position: fixed; top: 5px; right: 10px; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <a href="/download/raw"><button>Download Raw Code</button></a>
+    <a href="/download/exe"><button>Download EXE</button></a>
+  </div>
+  <div id="tabs">
+    <button onclick="showTab('ide')">IDE</button>
+    <button onclick="showTab('term')">Terminal</button>
+  </div>
+  <div id="ide" class="tab-content active">
+    <textarea id="editor"># Write your Python code here
+print("Hello, Python IDE!")</textarea>
+    <button onclick="run()">Run ▶</button>
+  </div>
+  <div id="term" class="tab-content">
+    <div id="terminal"></div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+  <script>
+    const editor = CodeMirror.fromTextArea(
+      document.getElementById("editor"),
+      { mode: "python", lineNumbers: true, theme: "default" }
+    );
+    function showTab(id) {
+      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+    async function run() {
+      const code = editor.getValue();
+      const res = await fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      const { output } = await res.json();
+      document.getElementById('terminal').textContent = output;
+      showTab('term');
+    }
+  </script>
+</body>
+</html>
